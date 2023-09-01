@@ -29,33 +29,32 @@ const CATEGORY_DROPDOWN_SELECTOR =
 const SUBMIT_RECORD_SELECTOR =
 	'body > div.ui.page.modals.dimmer.transition.visible.active > div > div.add-record-content.content > div > div.ten.wide.computer.sixteen.wide.mobile.ten.wide.tablet.column.form-main > form > div.main-white-panel > div > div.ten.wide.computer.fifteen.wide.mobile.ten.wide.tablet.column > button';
 
-const WALLET_SESSION_KEY = process.env.VITE_WALLET_SESSION_KEY || 'w-session';
-
 export class WalletClient {
 	private page?: Page;
 
 	constructor(private credentials: string, private browserInstance: Browser) {}
 
 	private async getPage(): Promise<Page> {
+		const [username, password] = this.credentials.split(':');
+		const sessionKey = `session:${username}`;
 		if (this.page) return this.page;
 
 		const page = await this.browserInstance.newPage();
 		page.setViewport({ width: 1280, height: 920 });
-		const cookies = await kv.get<Protocol.Network.CookieParam[]>(WALLET_SESSION_KEY);
+		const cookies = await kv.get<Protocol.Network.CookieParam[]>(sessionKey);
 		if (cookies) await page.setCookie(...cookies);
 		await page.goto(WALLET_APP_URL);
 		await new Promise((resolve) => setTimeout(resolve, 3000));
 		const isLoginPage = page.url().includes('login');
 
 		if (isLoginPage) {
-			const [username, password] = this.credentials.split(':');
 			await page.type(EMAIL_INPUT_SELECTOR, username);
 			await page.type(PASSWORD_INPUT_SELECTOR, password);
 			await page.click(SUBMIT_BUTTON_SELECTOR);
 			await page.waitForNavigation({ waitUntil: 'networkidle0' });
 			const client = await page.target().createCDPSession();
 			const cookies = (await client.send('Network.getAllCookies')).cookies;
-			await kv.set(WALLET_SESSION_KEY, cookies);
+			await kv.set(sessionKey, cookies);
 		}
 		this.page = page;
 		await page.waitForSelector(ACCOUNTS_SELECTOR);
