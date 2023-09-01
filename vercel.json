@@ -2,7 +2,7 @@
 	"crons": [
 		{
 			"path": "/api/jobs/sync-crypto-wallet",
-			"schedule": "*/10 * * * *"
+			"schedule": "0 0 * * *"
 		}
 	]
 }
