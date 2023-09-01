@@ -37,7 +37,6 @@ export const syncCryptoWallet = {
 		const coinClient = new CoinCapClient(CMC_AUTH_TOKEN);
 		const portfolioBalance = await coinClient.getPortfolioBalance(CRYPTO_PORTFOLIO_NAME);
 		const accounts = await walletClient.getAccounts();
-		console.log(accounts);
 		const cryptoWallet = accounts.find((account) => account.name === CRYPTO_WALLET_NAME);
 		if (!cryptoWallet) throw new Error(`Wallet with the name "${CRYPTO_WALLET_NAME}" not found`);
 		const record = createRecord(portfolioBalance, cryptoWallet.balance);
